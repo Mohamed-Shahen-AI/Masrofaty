@@ -1,0 +1,429 @@
+{
+  "name": "Masrofaty",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -528,
+        0
+      ],
+      "id": "7514e831-e5df-476b-b3a3-f5b191068e99",
+      "name": "Telegram Trigger",
+      "webhookId": "98ef3858-1e15-45a1-a0bf-e553d3e683b8",
+      "credentials": {
+        "telegramApi": {
+          "id": "vVSblWVVtOnpgHOu",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3-super-120b-a12b:free",
+        "options": {
+          "responseFormat": "text"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        96,
+        256
+      ],
+      "id": "20ba3c96-ef7a-4ccf-b719-84aab5f06c39",
+      "name": "OpenRouter Chat Model",
+      "retryOnFail": true,
+      "credentials": {
+        "openRouterApi": {
+          "id": "JwoHJ2cIvD55d2eb",
+          "name": "OpenRouter account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1Om2kwLg1ao8Exd_q-F9R2bl7k5Dsk3mXnS5xhQ2uyOM"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1Om2kwLg1ao8Exd_q-F9R2bl7k5Dsk3mXnS5xhQ2uyOM/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        256
+      ],
+      "id": "d94aa589-d194-4bef-872c-6b5782e82bd4",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "2jApfayuf7hTqZbd",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        816,
+        -32
+      ],
+      "id": "dbf9b0a9-11af-43f0-9b1b-f27c3357c648",
+      "name": "Send a text message",
+      "webhookId": "642900fe-c5d7-4a5c-ba5d-046be249545e",
+      "credentials": {
+        "telegramApi": {
+          "id": "vVSblWVVtOnpgHOu",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "You are a smart Personal Finance Assistant. Your role is to help the user manage their expenses via a Google Sheet. You must understand natural language (especially Egyptian Arabic slang) and convert it into structured data or queries.\n\nCRITICAL RULE: - Always store the Item Name, Item Description, and Category in Language that the user used, exactly as the user provides or as they are known in Arabic.\n\n    Example: If the user says 'صرفت 50 جنيه بنزين', store 'بنزين' as Item Name and 'مواصلات' as Category. Do NOT translate to English.\n\nGoogle Sheet Structure:\n    Item Name: The name of the item (Store in user language).\n    Item Description: Extra details or reason (Store in user language).\n    Price: The cost (numeric value only).\n    Category: The category (Use the Arabic version from the list below).\n    Date/Time: The timestamp of the transaction.\n\nApproved Categories (Store these names in the Sheet):\n(طعام وشراب، مواصلات، سكن وفواتير، مشتريات منزلية، أدوات تقنية، تعليم وكورسات، هاردوير، خروجات وترفيه، صحة وجمال، هدايا ومناسبات، التزامات مالية، نثريات).\n\nOperational Rules:\n\n    1. When Logging a New Expense:\n        Extract the Item Name, Price, and Item Description.\n        Assign the relevant Category in Arabic from the list.\n        Use the Google Sheets Tool to append a new row. Use the current timestamp for Date/Time.\n        Confirm to the user in Egyptian Arabic.\n\n    2. When Querying Expenses:\n        Identify the time frame.\n        Fetch data using the Google Sheets Tool.\n        Sum the Price column based on the Date/Time.\n        Provide a summary in Egyptian Arabic.\n\n    3. Tone and Language:\n        Always communicate with the user in Egyptian Arabic.\n        Parse Arabic slang accurately (e.g., 'جبت'، 'دفعت'، 'فول مدمس')"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        176,
+        -16
+      ],
+      "id": "388ec935-1c67-4802-bbcc-46b75d176644",
+      "name": "AI Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Om2kwLg1ao8Exd_q-F9R2bl7k5Dsk3mXnS5xhQ2uyOM",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1Om2kwLg1ao8Exd_q-F9R2bl7k5Dsk3mXnS5xhQ2uyOM/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Item Name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Item_Name', ``, 'string') }}",
+            "Item Description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Item_Description', ``, 'string') }}",
+            "Price": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Price', ``, 'string') }}",
+            "Category": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Category', ``, 'string') }}",
+            "Date/Time": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Date_Time', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Item Name",
+              "displayName": "Item Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Item Description",
+              "displayName": "Item Description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Price",
+              "displayName": "Price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date/Time",
+              "displayName": "Date/Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        320,
+        256
+      ],
+      "id": "ad87420b-86fd-4e0d-a01e-8020db5e0110",
+      "name": "Append row in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "2jApfayuf7hTqZbd",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0a78b377-7bf7-4169-8c41-8c3fd2963670",
+              "leftValue": "={{ $json.message.from.username }}",
+              "rightValue": "ebr_salem",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -320,
+        0
+      ],
+      "id": "1d2cd112-7a11-4239-8454-3d5edd584899",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f62bc0b0-4b24-4da4-abc3-e12a918bf67e",
+              "name": "message",
+              "value": "This Chatbot made for another client, If you need one like this contact with me +201289775133",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        256,
+        -192
+      ],
+      "id": "1ecde7af-fdb8-499d-9e21-ad0a5bb3a77b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        608,
+        -32
+      ],
+      "id": "6145d09f-8aee-4dac-a953-832b512ac6d7",
+      "name": "Merge",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $json.message.chat.id }}",
+        "message": "What is the Date?",
+        "approvalOptions": {
+          "values": {}
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -64,
+        -16
+      ],
+      "id": "544ee612-9cb6-458b-a753-cd75722e5f40",
+      "name": "Send a text message1",
+      "webhookId": "9416a7eb-6a2a-4144-8ef7-ea58221c1143",
+      "credentials": {
+        "telegramApi": {
+          "id": "vVSblWVVtOnpgHOu",
+          "name": "Telegram account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Append row in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "3c9d1daa-71c7-4337-8321-4895500fa893",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2d53b58c49dc86b57592e908eaa305a1b7171f9f7e9ca1c93755a41f1190de85"
+  },
+  "id": "FSv2sE57BSWp1U3tujDJ3",
+  "tags": []
+}
